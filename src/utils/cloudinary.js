@@ -26,7 +26,7 @@ import fs from 'fs';
     }
 
 
-    export default uploadonCloudinary;
+    export  {uploadonCloudinary};
  /*   // Upload an image
      const uploadResult = await cloudinary.uploader
        .upload(
