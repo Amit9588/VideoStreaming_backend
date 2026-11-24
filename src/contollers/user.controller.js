@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
+import { use } from "react";
 
 
 const generateAccessandRefreshToken = async (userID) => {
@@ -238,4 +239,52 @@ const refreshAccessToken = asyncHandler(async(req,res) =>{
     }}
 )
 
-export { registerUser , loginUser, loggedout , refreshAccessToken};
+const changeCurrentPassword = asyncHandler (async(req,res) => {
+    const {oldPassword, newPassword} = req.body
+
+    const user = await User.findById(req.user?._id)
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if(!isPasswordCorrect){
+        throw new ApiError(400, "Password is not correct")
+    }
+
+    user.password = newPassword
+    await user.save({validateBeforeSave : false})
+
+    return res.status(200).
+    json(new ApiResponse (200, {} , "Password Changed Congats !! "))
+})
+
+const getcurrentuser = asyncHandler(async(req,res) => {
+    return res.
+    status(200)
+    .json(200, req.user, "Current User Fetched Successfully")
+})
+
+const updateAccountDetails = asyncHandler(async(req,res) => {
+    const {fullName, email } = req.body
+
+    if(!fullName || !email) {
+        throw new ApiError (400, "Fields are required buddy")    
+    }
+
+
+    const user = User.findByIdAndUpdate(req.user?._id, {
+
+        $set:{
+            fullname : fullName,
+            email : email,
+
+        }
+
+    }, {new : true}).select("-password")
+
+    res.status(200)
+    .json(new ApiResponse (200, user, "Account Details Updated !!"))
+
+
+})
+
+
+export { registerUser , loginUser, loggedout , refreshAccessToken, changeCurrentPassword, updateAccountDetails};
